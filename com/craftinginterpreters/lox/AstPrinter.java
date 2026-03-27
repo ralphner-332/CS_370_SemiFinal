@@ -1,6 +1,23 @@
 package com.craftinginterpreters.lox;
 
 class AstPrinter implements Expr.Visitor<String> {
+	@Override
+	public String visitAssignExpr(Expr.Assign expr) {
+		return parenthesize2("=", expr.name.lexeme, expr.value);
+	}
+
+	@Override
+	public String visitVariableExpr(Expr.Variable expr) {
+		return expr.name.lexeme;
+	}
+
+	private String parenthesize2(String name, String var, Expr value) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("(").append(name).append(" ").append(var);
+		builder.append(" ").append(value.accept(this));
+		builder.append(")");
+		return builder.toString();
+	}
 	String print(Expr expr) {
 		return expr.accept(this);
 	}
