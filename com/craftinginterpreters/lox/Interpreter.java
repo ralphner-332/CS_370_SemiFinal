@@ -5,6 +5,8 @@ import java.util.List;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+    private static class Break extends RuntimeException {}
+
     @Override
     public Object visitLogicalExpr(Expr.Logical expr) {
         Object left = evaluate(expr.left);
@@ -18,15 +20,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return evaluate(expr.right);
     }
 
-        @Override
-        public Void visitIfStmt(Stmt.If stmt) {
-            if (isTruthy(evaluate(stmt.condition))) {
-                execute(stmt.thenBranch);
-            } else if (stmt.elseBranch != null) {
-                execute(stmt.elseBranch);
-            }
-            return null;
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
         }
+        return null;
+    }
     private Environment environment = new Environment();
 
     @Override
@@ -49,6 +51,23 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
         environment.define(stmt.name.lexeme, value);
         return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
+                execute(stmt.body);
+            }
+        } catch (Break breakSignal) {
+            return null;
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new Break();
     }
 
     @Override
